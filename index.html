@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 SBU3 PM1 居家上班規劃</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #9b9fb5 0%, #9b8fb5 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #9b9fb5 0%, #9b8fb5 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .user-selection {
+            background: #f5f5f5;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .user-selection label {
+            font-weight: 600;
+            margin-right: 15px;
+            color: #333;
+        }
+
+        .user-selection select {
+            padding: 8px 12px;
+            border: 2px solid #9b9fb5;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+            color: #333;
+            min-width: 150px;
+        }
+
+        .user-selection select:focus {
+            outline: none;
+            border-color: #9b8fb5;
+            box-shadow: 0 0 0 3px rgba(155, 143, 181, 0.1);
+        }
+
+        .content {
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #monthsContainer {
+            flex: 1;
+            min-width: 0;
+            overflow-y: auto;
+        }
+
+        #mainContent {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            border: none;
+            background: #e8e8e8;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #d8d8d8;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #9b9fb5 0%, #9b8fb5 100%);
+            color: white;
+        }
+
+        .month-grid {
+            display: none;
+        }
+
+        .month-grid.active {
+            display: block;
+        }
+
+        .month-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .day-header {
+            font-weight: 600;
+            text-align: center;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            color: #9b9fb5;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 4px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 30px;
+        }
+
+        .day-cell:hover:not(.holiday):not(.weekend):not(.empty) {
+            border-color: #9b9fb5;
+            box-shadow: 0 4px 12px rgba(155, 159, 181, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .day-cell.empty {
+            background: #f9f9f9;
+            cursor: default;
+            border-style: dashed;
+            border-color: #ddd;
+        }
+
+        .day-cell.empty:hover {
+            border-color: #ddd;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .day-number {
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 1px;
+        }
+
+        .day-cell.checked {
+            background: linear-gradient(135deg, #9b9fb5 0%, #9b8fb5 100%);
+            border-color: #9b9fb5;
+            color: white;
+        }
+
+        .day-cell.checked .day-number {
+            color: white;
+        }
+
+        .weekday {
+            display: none;
+        }
+
+        .day-cell.checked .weekday {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .day-cell.weekend,
+        .day-cell.holiday {
+            background: #f5dede;
+            border-color: #e8b8b8;
+            cursor: default;
+        }
+
+        .day-cell.holiday .holiday-label,
+        .day-cell.weekend .holiday-label {
+            font-size: 10px;
+            color: #c97676;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .day-cell.weekend .day-number,
+        .day-cell.holiday .day-number {
+            color: #c97676;
+        }
+
+        .day-cell.weekend .weekday,
+        .day-cell.holiday .weekday {
+            color: #c97676;
+        }
+
+        .people-checks {
+            font-size: 10px;
+            margin-top: 2px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .person-check {
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: white;
+            font-size: 15px;
+        }
+        
+        .person-check.tanya {
+            background: #d84646;
+        }
+        
+        .person-check.sherry {
+            background: #46a346;
+        }
+        
+        .person-check.elaine {
+            background: #c89446;
+        }
+        
+        .person-check.una {
+            background: #4684d8;
+        }
+
+        .info-section {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+            color: #666;
+            font-size: 12px;
+            width: 220px;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            position: fixed;
+            top: 200px;
+            right: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .info-section p {
+            margin-bottom: 10px;
+            line-height: 1.4;
+            font-size: 12px;
+        }
+
+        .info-section strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        .legend-box.wfh {
+            background: linear-gradient(135deg, #9b9fb5 0%, #9b8fb5 100%);
+            border-color: #9b9fb5;
+        }
+
+        .legend-box.holiday {
+            background: #f5dede;
+            border-color: #e8b8b8;
+        }
+
+        .reset-btn {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: #c97676;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .reset-btn:hover {
+            background: #b85e5e;
+            transform: translateY(-2px);
+        }
+
+        .download-btn {
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: #46a346;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .download-btn:hover {
+            background: #3a7f3a;
+            transform: translateY(-2px);
+        }
+
+        .no-user {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+            font-size: 18px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            #sidePanel {
+                width: 100%;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .calendar {
+                gap: 5px;
+            }
+
+            .day-cell {
+                padding: 3px;
+                min-height: 60px;
+            }
+
+            .day-number {
+                font-size: 12px;
+            }
+
+            .tabs {
+                gap: 5px;
+            }
+
+            .tab-button {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .people-checks {
+                font-size: 9px;
+            }
+
+            .person-check {
+                padding: 1px 3px;
+                font-size: 7px;
+            }
+
+            .info-section {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 2026 SBU3 PM1 居家上班規劃</h1>
+        </div>
+
+        <div class="user-selection">
+            <label for="userSelect">點擊標記你的居家上班日期：</label>
+            <select id="userSelect" onchange="selectUser()">
+                <option value="">-- 請選擇 --</option>
+                <option value="Tanya">Tanya</option>
+                <option value="Sherry">Sherry</option>
+                <option value="Elaine">Elaine</option>
+                <option value="Una">Una</option>
+            </select>
+        </div>
+
+        <div class="content">
+            <div id="noUserMsg" class="no-user">
+                <p>請先選擇你的名字，開始標記居家上班日期</p>
+            </div>
+
+            <div id="mainContent" style="display: none;">
+                <div id="monthsContainer">
+                    <div class="tabs" id="tabsContainer"></div>
+                    <div id="monthsGrid"></div>
+                </div>
+
+                <div id="sidePanel">
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-box wfh"></div>
+                            <span>居家上班</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box holiday"></div>
+                            <span>假日</span>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <strong>📋 操作說明</strong>
+                        <p>• 點擊日期即可標記居家工作日</p>
+                        <p>• 點擊兩次取消標記</p>
+                        <p>• PM每周一天/SPM每兩周一天</p>
+                        <button class="reset-btn" onclick="resetMyData()">清空我的標記</button>
+                        <button class="download-btn" onclick="downloadExcel()">📥 下載 Excel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MONTHS = [
+            { name: '1月', days: 31 },
+            { name: '2月', days: 28 },
+            { name: '3月', days: 31 },
+            { name: '4月', days: 30 },
+            { name: '5月', days: 31 },
+            { name: '6月', days: 30 },
+            { name: '7月', days: 31 },
+            { name: '8月', days: 31 },
+            { name: '9月', days: 30 },
+            { name: '10月', days: 31 },
+            { name: '11月', days: 30 },
+            { name: '12月', days: 31 }
+        ];
+
+        const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
+        
+        // 2026年1月1日是星期四
+        const FIRST_DAY_OF_YEAR = 4; // 0=日, 1=一, 2=二, 3=三, 4=四, 5=五, 6=六
+
+        // 台灣2026年國定假日和連假
+        const HOLIDAYS = [
+            // 元旦
+            { month: 0, day: 1, label: '元旦' },
+            // 農曆春節 (2月14-22)
+            { month: 1, day: 14, label: '春節' },
+            { month: 1, day: 15, label: '春節' },
+            { month: 1, day: 16, label: '春節' },
+            { month: 1, day: 17, label: '春節' },
+            { month: 1, day: 18, label: '春節' },
+            { month: 1, day: 19, label: '春節' },
+            { month: 1, day: 20, label: '春節' },
+            { month: 1, day: 21, label: '春節' },
+            { month: 1, day: 22, label: '春節' },
+            // 和平紀念日 (2月27)
+            { month: 1, day: 27, label: '和平紀念日' },
+            // 清明節及兒童節 (4月3-6)
+            { month: 3, day: 3, label: '清明節' },
+            { month: 3, day: 4, label: '兒童節' },
+            { month: 3, day: 5, label: '清明節' },
+            { month: 3, day: 6, label: '連假' },
+            // 勞動節 (5月1)
+            { month: 4, day: 1, label: '勞動節' },
+            // 端午節 (6月19)
+            { month: 5, day: 19, label: '端午節' },
+            // 中秋節 (9月25)
+            { month: 8, day: 25, label: '中秋節' },
+            // 國慶日 (10月9)
+            { month: 9, day: 9, label: '國慶日' },
+            // 光復節 (10月26)
+            { month: 9, day: 26, label: '光復節' },
+            // 行憲紀念日 (12月25)
+            { month: 11, day: 25, label: '行憲紀念日' },
+        ];
+
+        let currentUser = null;
+        let data = {};
+
+        function getDayOfWeek(monthIndex, day) {
+            let dayOffset = FIRST_DAY_OF_YEAR;
+            
+            // 計算這一天是年中的第幾天
+            for (let i = 0; i < monthIndex; i++) {
+                dayOffset += MONTHS[i].days;
+            }
+            dayOffset += day - 1;
+            
+            return dayOffset % 7;
+        }
+
+        function isHoliday(monthIndex, day) {
+            return HOLIDAYS.some(h => h.month === monthIndex && h.day === day);
+        }
+
+        function getHolidayLabel(monthIndex, day) {
+            const holiday = HOLIDAYS.find(h => h.month === monthIndex && h.day === day);
+            return holiday ? holiday.label : '';
+        }
+
+        function isWeekend(monthIndex, day) {
+            const dayOfWeek = getDayOfWeek(monthIndex, day);
+            return dayOfWeek === 0 || dayOfWeek === 6; // 日或六
+        }
+
+        function isNonWorkingDay(monthIndex, day) {
+            return isHoliday(monthIndex, day) || isWeekend(monthIndex, day);
+        }
+
+        function selectUser() {
+            const select = document.getElementById('userSelect');
+            currentUser = select.value;
+            
+            if (!currentUser) {
+                document.getElementById('noUserMsg').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('noUserMsg').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            loadData();
+            renderUI();
+        }
+
+        function loadData() {
+            const stored = localStorage.getItem('wfhData');
+            data = stored ? JSON.parse(stored) : {};
+            
+            // 確保每個人都有數據
+            const users = ['Tanya', 'Sherry', 'Elaine', 'Una'];
+            users.forEach(user => {
+                if (!data[user]) {
+                    data[user] = {};
+                }
+            });
+        }
+
+        function saveData() {
+            localStorage.setItem('wfhData', JSON.stringify(data));
+        }
+
+        function toggleDay(monthIndex, day) {
+            // 不允許選擇假日或週末
+            if (isNonWorkingDay(monthIndex, day)) {
+                return;
+            }
+
+            const key = `${monthIndex}-${day}`;
+            if (data[currentUser][key]) {
+                delete data[currentUser][key];
+            } else {
+                data[currentUser][key] = true;
+            }
+            saveData();
+            renderUI();
+        }
+
+        function renderUI() {
+            renderTabs();
+            renderMonths();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabsContainer');
+            container.innerHTML = '';
+            
+            MONTHS.forEach((month, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'tab-button' + (index === 0 ? ' active' : '');
+                btn.textContent = month.name;
+                btn.onclick = () => switchMonth(index);
+                container.appendChild(btn);
+            });
+        }
+
+        function switchMonth(monthIndex) {
+            // 更新按鈕狀態
+            document.querySelectorAll('.tab-button').forEach((btn, index) => {
+                btn.classList.toggle('active', index === monthIndex);
+            });
+            
+            // 更新月份顯示
+            document.querySelectorAll('.month-grid').forEach((grid, index) => {
+                grid.classList.toggle('active', index === monthIndex);
+            });
+        }
+
+        function renderMonths() {
+            const container = document.getElementById('monthsGrid');
+            container.innerHTML = '';
+            
+            MONTHS.forEach((month, monthIndex) => {
+                const grid = document.createElement('div');
+                grid.className = 'month-grid' + (monthIndex === 0 ? ' active' : '');
+                
+                let html = `<div class="month-title">${month.name}</div>`;
+                html += '<div class="calendar">';
+                
+                // 週日到週六的標題
+                WEEKDAYS.forEach(day => {
+                    html += `<div class="day-header">${day}</div>`;
+                });
+                
+                // 計算開始位置
+                const startDay = getDayOfWeek(monthIndex, 1);
+                
+                // 填充前面的空格
+                for (let i = 0; i < startDay; i++) {
+                    html += '<div class="day-cell empty"></div>';
+                }
+                
+                // 填充日期
+                for (let day = 1; day <= month.days; day++) {
+                    const key = `${monthIndex}-${day}`;
+                    const dayOfWeek = getDayOfWeek(monthIndex, day);
+                    const weekdayName = WEEKDAYS[dayOfWeek];
+                    const holiday = isHoliday(monthIndex, day);
+                    const weekend = isWeekend(monthIndex, day);
+                    const isNonWork = holiday || weekend;
+                    
+                    let cellClass = 'day-cell';
+                    if (holiday) cellClass += ' holiday';
+                    else if (weekend) cellClass += ' weekend';
+                    
+                    // 獲取所有標記此日為WFH的人
+                    const users = ['Tanya', 'Sherry', 'Elaine', 'Una'];
+                    const checkedUsers = users.filter(user => data[user] && data[user][key]);
+                    
+                    let peopleHtml = '';
+                    if (checkedUsers.length > 0) {
+                        peopleHtml = '<div class="people-checks">';
+                        checkedUsers.forEach(user => {
+                            const userClass = user.toLowerCase();
+                            peopleHtml += `<div class="person-check ${userClass}">${user}</div>`;
+                        });
+                        peopleHtml += '</div>';
+                    }
+                    
+                    let holidayLabel = '';
+                    if (holiday) {
+                        holidayLabel = `<div class="holiday-label">${getHolidayLabel(monthIndex, day)}</div>`;
+                    } else if (weekend) {
+                        holidayLabel = '<div class="holiday-label">假日</div>';
+                    }
+
+                    const clickHandler = isNonWork ? '' : `onclick="toggleDay(${monthIndex}, ${day})"`;
+                    const isChecked = !isNonWork && data[currentUser] && data[currentUser][key];
+                    
+                    html += `
+                        <div class="${cellClass}" style="${isNonWork ? '' : 'cursor: pointer;'}" ${clickHandler}>
+                            <div class="day-number">${day}</div>
+                            <div class="weekday">${weekdayName}</div>
+                            ${isChecked ? '<div style="font-size: 16px; color: white; font-weight: bold; margin-top: 2px;">✓</div>' : ''}
+                            ${holidayLabel}
+                            ${peopleHtml}
+                        </div>
+                    `;
+                }
+                
+                html += '</div>';
+                grid.innerHTML = html;
+                container.appendChild(grid);
+            });
+        }
+
+        function resetMyData() {
+            if (confirm(`確定要清空 ${currentUser} 的所有標記嗎？`)) {
+                data[currentUser] = {};
+                saveData();
+                renderUI();
+            }
+        }
+
+        function downloadExcel() {
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            const users = ['Tanya', 'Sherry', 'Elaine', 'Una'];
+            
+            // 建立 CSV 內容（添加 UTF-8 BOM）
+            let csvContent = '\uFEFF日期,Tanya,Sherry,Elaine,Una\n';
+            
+            MONTHS.forEach((month, monthIndex) => {
+                for (let day = 1; day <= month.days; day++) {
+                    const key = `${monthIndex}-${day}`;
+                    const dayOfWeek = getDayOfWeek(monthIndex, day);
+                    
+                    let dateStr = `${monthNames[monthIndex]}${day}日`;
+                    let checkedInfo = [];
+                    
+                    users.forEach(user => {
+                        if (data[user] && data[user][key]) {
+                            checkedInfo.push('✓');
+                        } else {
+                            checkedInfo.push('');
+                        }
+                    });
+                    
+                    csvContent += `${dateStr},${checkedInfo[0]},${checkedInfo[1]},${checkedInfo[2]},${checkedInfo[3]}\n`;
+                }
+            });
+            
+            // 使用 Blob 和正確的編碼來下載
+            const BOM = "\uFEFF";
+            const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', '2026_SBU3_PM1_居家上班規劃.csv');
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // 初始化
+        loadData();
+    </script>
+</body>
+</html>
