@@ -265,8 +265,8 @@
             background: #d84646;
         }
         
-        .person-check.sherry {
-            background: #46a346;
+        .person-check.sandi {
+            background: #8fa88f;
         }
         
         .person-check.elaine {
@@ -458,6 +458,7 @@
                 <option value="">-- 請選擇 --</option>
                 <option value="Tanya">Tanya</option>
                 <option value="Sherry">Sherry</option>
+                <option value="Sandi">Sandi</option>
                 <option value="Elaine">Elaine</option>
                 <option value="Una">Una</option>
             </select>
@@ -610,7 +611,7 @@
             data = stored ? JSON.parse(stored) : {};
             
             // 確保每個人都有數據
-            const users = ['Tanya', 'Sherry', 'Elaine', 'Una'];
+            const users = ['Tanya', 'Sherry', 'Sandi', 'Elaine', 'Una'];
             users.forEach(user => {
                 if (!data[user]) {
                     data[user] = {};
@@ -706,7 +707,7 @@
                     else if (weekend) cellClass += ' weekend';
                     
                     // 獲取所有標記此日為WFH的人
-                    const users = ['Tanya', 'Sherry', 'Elaine', 'Una'];
+                    const users = ['Tanya', 'Sherry', 'Sandi', 'Elaine', 'Una'];
                     const checkedUsers = users.filter(user => data[user] && data[user][key]);
                     
                     let peopleHtml = '';
@@ -756,10 +757,10 @@
 
         function downloadExcel() {
             const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-            const users = ['Tanya', 'Sherry', 'Elaine', 'Una'];
+            const users = ['Tanya', 'Sherry', 'Sandi', 'Elaine', 'Una'];
             
             // 建立 CSV 內容（添加 UTF-8 BOM）
-            let csvContent = '\uFEFF日期,Tanya,Sherry,Elaine,Una\n';
+            let csvContent = '\uFEFFDate,Tanya,Sherry,Sandi,Elaine,Una\n';
             
             MONTHS.forEach((month, monthIndex) => {
                 for (let day = 1; day <= month.days; day++) {
