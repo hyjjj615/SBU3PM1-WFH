@@ -633,6 +633,9 @@
                 return;
             }
 
+            // 保存當前選中的月份
+            currentMonthIndex = monthIndex;
+
             const key = `${monthIndex}-${day}`;
             if (data[currentUser][key]) {
                 delete data[currentUser][key];
