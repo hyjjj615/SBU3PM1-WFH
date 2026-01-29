@@ -562,6 +562,7 @@
 
         let currentUser = null;
         let data = {};
+        let currentMonthIndex = 0;
 
         function getDayOfWeek(monthIndex, day) {
             let dayOffset = FIRST_DAY_OF_YEAR;
@@ -654,7 +655,7 @@
             
             MONTHS.forEach((month, index) => {
                 const btn = document.createElement('button');
-                btn.className = 'tab-button' + (index === 0 ? ' active' : '');
+                btn.className = 'tab-button' + (index === currentMonthIndex ? ' active' : '');
                 btn.textContent = month.name;
                 btn.onclick = () => switchMonth(index);
                 container.appendChild(btn);
@@ -662,6 +663,9 @@
         }
 
         function switchMonth(monthIndex) {
+            // 保存當前選中的月份
+            currentMonthIndex = monthIndex;
+            
             // 更新按鈕狀態
             document.querySelectorAll('.tab-button').forEach((btn, index) => {
                 btn.classList.toggle('active', index === monthIndex);
@@ -679,7 +683,7 @@
             
             MONTHS.forEach((month, monthIndex) => {
                 const grid = document.createElement('div');
-                grid.className = 'month-grid' + (monthIndex === 0 ? ' active' : '');
+                grid.className = 'month-grid' + (monthIndex === currentMonthIndex ? ' active' : '');
                 
                 let html = `<div class="month-title">${month.name}</div>`;
                 html += '<div class="calendar">';
